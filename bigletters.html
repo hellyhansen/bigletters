@@ -50,9 +50,9 @@
       scratch.textBaseline = 'hanging';
 
       addEventListener('keydown', function(event) {
-        var match = event.code.match(/^Key([A-Z])$/);
+        var match = event.code.match(/^(Key|Digit)([A-Z0-9])$/);
         if (!match) return;
-        var letter = match[1];
+        var letter = match[2];
 
         scratch.clearRect(0, 0, 16, 16);
         scratch.fillText(letter, 3, 2);
