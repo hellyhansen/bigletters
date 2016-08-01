@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <title>Big Letters</title>
+    <style>
+      body {
+        background: black;
+        overflow: hidden;
+      }
+
+      div#canvas-wrapper {
+        position: absolute;
+      }
+
+      div#canvas-wrapper canvas {
+        width: 100%; height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrapper">
+      <canvas id="canvas" width="256" height="256"/>
+    </div>
+    <script>
+      var canvasWrapper = document.getElementById("canvas-wrapper");
+      var resizing = false;
+      function resize() {
+        if (!resizing) {
+          resizing = true;
+          requestAnimationFrame(function() {
+            resizing = false;
+            var size = Math.min(innerWidth, innerHeight);
+            var style = canvasWrapper.style;
+            style.left = style.right = (innerWidth - size) / 2 + 16;
+            style.top = style.bottom = (innerHeight - size) / 2 + 16;
+          });
+        }
+      }
+      addEventListener('resize', resize);
+
+      var ctx = document.getElementById('canvas').getContext('2d');
+      ctx.font = '32px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'white';
+      ctx.fillText('BIG LETTERS', 128, 128);
+
+      var scratch = document.createElement('canvas').getContext('2d');
+      scratch.canvas.width = scratch.canvas.height = 16;
+      scratch.font = '16px monospace';
+      scratch.textBaseline = 'hanging';
+
+      addEventListener('keydown', function(event) {
+        var match = event.code.match(/^Key([A-Z])$/);
+        if (!match) return;
+        var letter = match[1];
+
+        scratch.clearRect(0, 0, 16, 16);
+        scratch.fillText(letter, 3, 2);
+        var imageData = scratch.getImageData(0, 0, 16, 16);
+        var data = imageData.data;
+        var alphas = new Float32Array(256);
+        var r = Math.random() > 0.5 ? 255 : 0
+        var g = Math.random() > 0.5 ? 255 : 0
+        var b = Math.random() > 0.5 ? 255 : 0
+        for (var i = 0; i < 256; ++i) {
+          var a = alphas[i] = data[i * 4 + 3] / 255;
+          data[i * 4 + 0] = a * r  + (1 - a) * (255 - r);
+          data[i * 4 + 1] = a * g  + (1 - a) * (255 - g);
+          data[i * 4 + 2] = a * b  + (1 - a) * (255 - b);
+          data[i * 4 + 3] = 255;
+        }
+        scratch.putImageData(imageData, 0, 0);
+
+        ctx.clearRect(0, 0, 256, 256);
+        for (var i = 0, y = 0; y < 256; y += 16) {
+          for (var x = 0; x < 256; x += 16, ++i) {
+            ctx.globalAlpha = alphas[i];
+            ctx.drawImage(scratch.canvas, x, y);
+          }
+        }
+        ctx.globalAlpha = 1;
+      });
+      resize();
+    </script>
+  </body>
+</html>
+
